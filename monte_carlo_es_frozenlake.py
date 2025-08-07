@@ -3,6 +3,7 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 from collections import defaultdict
+from tqdm import tqdm
 
 # Crear entorno
 env = gym.make("FrozenLake-v1", is_slippery=True)
@@ -13,14 +14,14 @@ returns = defaultdict(list)
 policy = defaultdict(lambda: np.ones(env.action_space.n) / env.action_space.n)
 
 # Parámetros
-n_episodes = 50000
+n_episodes = 1000  
 gamma = 0.99
+epsilon = 0.1  # Para ε-greedy
 reward_history = []
 
-for episode in range(n_episodes):
-    # Exploring Starts: estado y acción inicial aleatorios
+for episode in tqdm(range(n_episodes), desc="Entrenando episodios"):
+    # Exploring Starts: estado inicial del entorno, acción aleatoria
     state, _ = env.reset()
-    state = random.randint(0, env.observation_space.n - 1)
     action = random.randint(0, env.action_space.n - 1)
 
     episode_trajectory = []
@@ -54,22 +55,32 @@ for episode in range(n_episodes):
             returns[(s_t, a_t)].append(G)
             Q[s_t][a_t] = np.mean(returns[(s_t, a_t)])
 
+            # Política ε-greedy
             best_action = np.argmax(Q[s_t])
-            policy[s_t] = np.eye(env.action_space.n)[best_action]
+            policy[s_t] = np.ones(env.action_space.n) * epsilon / env.action_space.n
+            policy[s_t][best_action] += (1 - epsilon)
 
-# ------------------ Gráfico de convergencia ------------------
+# Depuración: contar éxitos
+success_count = sum(1 for r in reward_history if r == 1)
+print(f"Éxitos (recompensa = 1): {success_count}/{n_episodes}")
 
+# Gráfico de convergencia
 def moving_average(data, window_size):
     return np.convolve(data, np.ones(window_size)/window_size, mode='valid')
 
-window = 500
+window = 100  # Reducido
 avg_rewards = moving_average(reward_history, window)
 
 plt.figure(figsize=(10, 5))
-plt.plot(avg_rewards)
-plt.xlabel(f'Episodios (media móvil de {window})')
+plt.plot(avg_rewards, label=f'Media móvil (ventana={window})')
+plt.plot(reward_history, alpha=0.3, label='Recompensas crudas')  # Añadir recompensas crudas
+plt.xlabel('Episodios')
 plt.ylabel('Recompensa promedio')
 plt.title('Convergencia de Monte Carlo ES en FrozenLake')
 plt.grid(True)
+plt.legend()
 plt.tight_layout()
+
+# Guardar el gráfico
+plt.savefig('frozenlake_montecarlo_es.png', dpi=300, bbox_inches='tight')
 plt.show()
