@@ -43,7 +43,7 @@ Se trackean métricas como recompensas, tasa de éxito (basada en llegada al obj
 
 - Tasa de éxito final: ~99% (basado en pruebas cada 10k episodios).
 
-https://github.com/Agustinlopezf/CEIA-AprendizajeRefuerzoI/blob/main/frozenlake_qlearning.png
+![Gráficos de Convergencia](https://github.com/Agustinlopezf/CEIA-AprendizajeRefuerzoI/blob/main/frozenlake_qlearning.png)
 
 ### Análisis de los Gráficos
 
