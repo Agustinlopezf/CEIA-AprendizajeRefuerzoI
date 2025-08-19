@@ -166,4 +166,46 @@ plt.legend()
 
 plt.tight_layout()  # Ajustar layout para evitar solapamientos
 plt.savefig('frozenlake_qlearning.png', dpi=300, bbox_inches='tight')  # Guardar imagen
-plt.show()  # Mostrar gráficos
+
+
+# Visualización de un episodio con la política aprendida
+# Configurar el entorno con render_mode='ansi' para visualización en texto
+env_vis = gym.make("FrozenLake-v1", is_slippery=False, render_mode='ansi')
+env_vis = WrapperRecompensaNegativa(env_vis, step_penalty=-0.01, hole_penalty=-0.3)
+
+# Visualización de un episodio con la política aprendida
+def visualize_episode(env, Q, render_mode='ansi'):
+    """
+    Ejecuta un episodio usando la política greedy y visualiza los pasos.
+    """
+    state, _ = env.reset()
+    state = str(state)
+    done = False
+    step = 0
+    print("Inicio del episodio")
+    print("Leyenda: S=Inicio, F=Congelado, H=Agujero, G=Objetivo")
+    print("Acciones: 0=Izquierda, 1=Abajo, 2=Derecha, 3=Arriba")
+    print(f"Paso {step}: Estado inicial = {state}")
+    print(env.render())  # Mostrar estado inicial como texto
+
+    while not done:
+        action = np.argmax(Q[state])  # Elegir la mejor acción (greedy)
+        next_state, reward, terminated, truncated, _ = env.step(action)
+        next_state = str(next_state)
+        done = terminated or truncated
+        step += 1
+        print(f"Paso {step}: Estado = {state}, Acción = {action}, Recompensa = {reward}, Próximo estado = {next_state}")
+        print(env.render())  # Mostrar el entorno como texto tras la acción
+        state = next_state
+
+        if done:
+            if reward == 1:
+                print("¡Éxito! El agente alcanzó el objetivo.")
+            elif reward == -0.3:
+                print("El agente cayó en un agujero.")
+            else:
+                print("Episodio terminado (truncado u otro motivo).")
+
+# Ejecutar visualización
+visualize_episode(env_vis, Q, render_mode='ansi')
+env_vis.close()  # Cerrar el entorno
